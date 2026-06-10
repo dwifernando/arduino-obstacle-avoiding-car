@@ -1,0 +1,172 @@
+#include <Servo.h>
+#include <NewPing.h>
+
+Servo myservo;
+
+#define trigPin 2
+#define echoPin 3
+#define MAX_DISTANCE 200
+
+#define ENA 5
+#define ENB 6
+#define IN1 8
+#define IN2 9
+#define IN3 10
+#define IN4 11
+
+#define SAFE_DISTANCE 25
+NewPing sonar(trigPin, echoPin, MAX_DISTANCE);
+
+int distance = 100;
+
+void setup() {
+
+  pinMode(ENA, OUTPUT);
+  pinMode(ENB, OUTPUT);
+
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+
+  analogWrite(ENA, 180);
+  analogWrite(ENB, 180);
+
+  myservo.attach(4);
+  myservo.write(90);
+
+  delay(1000);
+
+  distance = readPing();
+}
+
+void loop() {
+
+  int distanceRight = 0;
+  int distanceLeft = 0;
+
+  delay(50);
+
+  if (distance <= SAFE_DISTANCE) {
+
+    stopCar();
+    delay(100);
+
+    backward();
+    delay(200);
+
+    stopCar();
+    delay(100);
+
+    distanceRight = lookRight();
+    delay(150);
+
+    distanceLeft = lookLeft();
+    delay(150);
+
+    if (distanceRight >= distanceLeft) {
+      turnRight();
+    } else {
+      turnLeft();
+    }
+
+    stopCar();
+
+  } else {
+    forward();
+  }
+
+  distance = readPing();
+}
+
+// ===== SENSOR FUNCTION =====
+int readPing() {
+
+  delay(30);
+
+  int cm = sonar.ping_cm();
+
+  if (cm == 0) {
+    cm = 250;
+  }
+
+  return cm;
+}
+
+// ===== SERVO SCAN =====
+int lookRight() {
+
+  myservo.write(160);
+  delay(300);
+
+  int d = readPing();
+
+  myservo.write(90);
+
+  return d;
+}
+
+int lookLeft() {
+
+  myservo.write(20);
+  delay(300);
+
+  int d = readPing();
+
+  myservo.write(90);
+
+  return d;
+}
+
+void forward() {
+
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+}
+
+void backward() {
+
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+}
+
+void stopCar() {
+
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
+}
+
+void turnLeft() {
+
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+
+  delay(220);
+
+  stopCar();
+}
+
+void turnRight() {
+
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+
+  delay(220);
+
+  stopCar();
+}
